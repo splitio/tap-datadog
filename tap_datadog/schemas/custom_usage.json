@@ -1,0 +1,21 @@
+{
+   "type": [
+      "null",
+      "object"
+   ],
+   "properties": {
+      "num_custom_timeseries": {
+         "type": [
+            "null",
+            "integer"
+         ]
+      },
+      "hour": {
+         "type": [
+            "null",
+            "string"
+         ],
+         "format": "date-time"
+      }
+   }
+}

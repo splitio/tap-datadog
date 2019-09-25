@@ -1,0 +1,52 @@
+{
+  "type": [
+    "null",
+    "object"
+  ],
+  "properties": {
+    "container_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "hour": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "apm_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "agent_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "gcp_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "aws_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    }
+  }
+
+}

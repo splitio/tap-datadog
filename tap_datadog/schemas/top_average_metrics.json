@@ -1,0 +1,32 @@
+{
+  "type": [
+    "null",
+    "object"
+  ],
+  "properties": {
+    "metric_category": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "max_metric_hour": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "avg_metric_hour": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "metric_name": {
+      "type": [
+        "null",
+        "string"
+      ]
+    }
+  }
+}

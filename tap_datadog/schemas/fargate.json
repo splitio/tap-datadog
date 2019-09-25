@@ -1,0 +1,21 @@
+{
+  "type": [
+    "null",
+    "object"
+  ],
+  "properties": {
+    "tasks_count": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "hour": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    }
+  }
+}

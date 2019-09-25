@@ -1,0 +1,27 @@
+{
+  "type": [
+    "null",
+    "object"
+  ],
+  "properties": {
+    "ingested_events_bytes": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "indexed_events_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "hour": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    }
+  }
+}
