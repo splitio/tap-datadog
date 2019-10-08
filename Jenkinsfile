@@ -4,7 +4,7 @@ pipeline {
     agent any
 
     triggers {
-      cron('H * * * *') // run every hour
+      cron('0 6 * * *') // run every day at 11pm PST
     }
 
     options {
