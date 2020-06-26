@@ -4,16 +4,16 @@
 export PATH=/usr/local/bin:$PATH
 
 # Set Variables
-VENV="${1}"
-SOURCE_INSTALL="${2}"
-FLAG="${3}"
+VENV=".venv/tap-datadog"
+SOURCE_INSTALL="."
+FLAG="-e"
 PARAMS='--no-cache-dir'
 
 # Create or Update Virtual Environment
 if [[ ! -d "${VENV}" ]]; then
-  python3.6 -m venv "${VENV}"
+  python3 -m venv "${VENV}"
   source "${VENV}/bin/activate"
-  pip3.6 install ${PARAMS} -U setuptools pip
-  pip3.6 install ${PARAMS} ${FLAG} "${SOURCE_INSTALL}"
+  pip3 install ${PARAMS} -U setuptools pip
+  pip3 install ${PARAMS} ${FLAG} "${SOURCE_INSTALL}"
   deactivate
 fi

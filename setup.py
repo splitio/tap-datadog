@@ -4,7 +4,7 @@ from setuptools import setup
 setup(
     name="tap-datadog",
     version="0.1.0",
-    description="Singer.io tap for extracting Fastly billing data.",
+    description="Singer.io tap for extracting datadog billing data.",
     author="Stitch",
     url="http://singer.io",
     classifiers=["Programming Language :: Python :: 3 :: Only"],

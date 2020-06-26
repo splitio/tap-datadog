@@ -27,6 +27,13 @@
         "null",
         "string"
       ]
+    },
+    "month": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
     }
   }
 }

@@ -30,14 +30,16 @@ class DatadogClient:
         if not self._session:
             self._session = requests.Session()
             self._session.headers.update({"Accept": "application/json"})
+            self._session.headers.update({"DD-API-KEY": self._auth.api_token})
+            self._session.headers.update({"DD-APPLICATION-KEY": self._auth.application_token})
 
         return self._session
 
     def _get(self, path, params=None, data=None):
         for _ in range(0, 3):  # 3 attempts
             url = self._base_url + path
-            data["api_key"] = self._auth.api_token
-            data["application_key"] = self._auth.application_token
+            #data["api_key"] = self._auth.api_token #setting them up as parameters
+            #data["application_key"] = self._auth.application_token
             response = self.session.get(url, params=data)
             if response.status_code == 429:
                 time_to_reset = response.headers.get('X-RateLimit-Reset', time.time() + 60)
@@ -74,6 +76,9 @@ class DatadogClient:
             data = {'month': start_date}
             query = f"top_avg_metrics"
             metrics = self._get(query,  data=data)
+            # add month to metrics json structure
+            # metrics["month"] = start_date
+            #what data am I putting in? might need to edit/add parameters
             return metrics.json()
         except:
             return None
@@ -109,8 +114,7 @@ class DatadogSync:
         """Get hourly usage for logs."""
         stream = "logs"
         loop = asyncio.get_event_loop()
-
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         logs = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"logs", stream)
         if logs:
             for log in logs['usage']:
@@ -122,8 +126,7 @@ class DatadogSync:
         """Get hourly usage for custom metric."""
         stream = "custom_usage"
         loop = asyncio.get_event_loop()
-
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         custom_usage = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"timeseries", stream)
         if custom_usage:
             for c in custom_usage['usage']:
@@ -136,7 +139,7 @@ class DatadogSync:
         stream = "fargate"
         loop = asyncio.get_event_loop()
 
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         fargates = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"fargate", stream)
         if fargates:
             for fargate in fargates['usage']:
@@ -149,7 +152,7 @@ class DatadogSync:
         stream = "hosts_and_containers"
         loop = asyncio.get_event_loop()
 
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         hosts = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"hosts", stream)
         if hosts:
             for host in hosts['usage']:
@@ -162,7 +165,7 @@ class DatadogSync:
         stream = "synthetics"
         loop = asyncio.get_event_loop()
 
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         synthetics = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"synthetics", stream)
         if synthetics:
             for synthetic in synthetics['usage']:
@@ -175,7 +178,7 @@ class DatadogSync:
         stream = "top_average_metrics"
         loop = asyncio.get_event_loop()
 
-        singer.write_schema(stream, schema.to_dict(), [])
+        singer.write_schema(stream, schema, [])
         top_average_metrics = await loop.run_in_executor(None, self.client.top_avg_metrics, self.state, self.config)
         if top_average_metrics:
             for t in top_average_metrics['usage']:
@@ -187,7 +190,7 @@ class DatadogSync:
         stream = "trace_search"
         loop = asyncio.get_event_loop()
 
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         trace_search = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"traces", stream)
         if trace_search:
             for trace in trace_search['usage']:
