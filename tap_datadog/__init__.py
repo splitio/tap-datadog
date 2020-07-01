@@ -20,14 +20,13 @@ LOGGER = singer.get_logger()
 #id used to be unique keys but now not so much, gotta decide for myself (what is the data that I'm really getting and how do I construct it in a way thats useful, get usage over time and decide who is using what)
 #what is useful? if i want to run analysis on it later what would be important
 SCHEMA_PRIMARY_KEYS = { 
-    "custom_usage": ["hour"],
-    "fargate": ["hour"], #seem to mostly be hour 
-    "hosts_and_containers": ["hour"], #hour seems to be unique but not sure what's really needed all grouped by hour
-    "logs": ["hour"], #hour unique
-    "synthetics": ["hour"], #hour seems to be unique as well
-    "top_average_metrics": ["month","metric_name"],#,"metric_name" #only 710 distinct metric names in table of 82000 so need something else to make it unique too
-    "trace_search": ["hour"]
-
+    # "custom_usage": ["hour"],
+    # "fargate": ["hour"], #seem to mostly be hour 
+    # "hosts_and_containers": ["hour"], #hour seems to be unique but not sure what's really needed all grouped by hour
+    # "logs": ["hour"], #hour unique
+    # "synthetics": ["hour"], #hour seems to be unique as well
+    "top_average_metrics": ["month","metric_name"]#,#,"metric_name" #only 710 distinct metric names in table of 82000 so need something else to make it unique too
+    # "trace_search": ["hour"]
 }
 
 

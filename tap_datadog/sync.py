@@ -7,7 +7,7 @@ import urllib
 from requests import HTTPError
 from singer.bookmarks import write_bookmark, get_bookmark
 from pendulum import datetime
-import datetime
+from datetime import datetime
 import time
 
 LOGGER = singer.get_logger()
@@ -38,8 +38,8 @@ class DatadogClient:
     def _get(self, path, params=None, data=None):
         for _ in range(0, 3):  # 3 attempts
             url = self._base_url + path
-            #data["api_key"] = self._auth.api_token #setting them up as parameters
-            #data["application_key"] = self._auth.application_token
+            # data["api_key"] = self._auth.api_token #setting them up as parameters
+            # data["application_key"] = self._auth.application_token
             response = self.session.get(url, params=data)
             if response.status_code == 429:
                 time_to_reset = response.headers.get('X-RateLimit-Reset', time.time() + 60)
@@ -66,22 +66,17 @@ class DatadogClient:
             LOGGER.error(error)
             return None
 
-    def top_avg_metrics(self, state, config):
+            
+
+    def top_avg_metrics(self, start_date):
         try:
-            bookmark = get_bookmark(state, "top_average_metrics", "since")
-            if bookmark:
-                start_date = urllib.parse.quote(bookmark)
-            else:
-                start_date = config['start_month']
             data = {'month': start_date}
-            query = f"top_avg_metrics"
+            query = f"top_avg_metrics" 
             metrics = self._get(query,  data=data)
-            # add month to metrics json structure
-            # metrics["month"] = start_date
-            #what data am I putting in? might need to edit/add parameters
             return metrics.json()
         except:
             return None
+        
 
 class DatadogSync:
     def __init__(self, client: DatadogClient, state={}, config={}):
@@ -178,23 +173,53 @@ class DatadogSync:
         stream = "top_average_metrics"
         loop = asyncio.get_event_loop()
 
-        singer.write_schema(stream, schema, [])
-        top_average_metrics = await loop.run_in_executor(None, self.client.top_avg_metrics, self.state, self.config)
-        if top_average_metrics:
-            for t in top_average_metrics['usage']:
-                singer.write_record(stream, t)
-            self.state = write_bookmark(self.state, stream, "since", datetime.datetime.utcnow().strftime('%Y-%m'))
+        #make sure bookmark is a date time object
+        #be clear about what its going to be, what its going to be through, then what I am going to do with it
+        bookmark = get_bookmark(self.state, "top_average_metrics", "since")
+        if bookmark:
+            start_date = urllib.parse.quote(bookmark)
+        else:
+            start_date = self.config['start_month']
 
+        # datetime.datetime.strptime(start_date, '%y-%m') #year, month
+        
+        #look in singer to find another field that has a timestamp field to see how they output it and put it into snowflake so we can put it into pipelienwise correctly
+
+
+        today = datetime.today()
+        end_date = datetime(today.year, today.month, 1)
+
+        month_data = datetime.strptime(start_date, '%Y-%m')
+        singer.write_schema(stream, schema, ["month","metric_name"])
+        #this is where loop goes for everything that goes in
+        while month_data <= end_date:
+            top_average_metrics = await loop.run_in_executor(None, self.client.top_avg_metrics, start_date)#this is where other method is called
+            if top_average_metrics:
+                for t in top_average_metrics['usage']:
+                # for t in top_average_metrics:
+                    t["month"] = month_data #convert timestamp into format needed by API then convert into what is needed in 195
+                    # t["month"] = datetime.strptime(start_date, '%Y-%m')#+"-01" #AT LEAST NEEDS A DAY format my start date correctly in here 
+                    # t["month"] = "2020-05-01"#make this a date time object
+                    singer.write_record(stream, t)
+                # self.state = write_bookmark(self.state, stream, "since", datetime.utcnow().strftime('%Y-%m'))
+                self.state = write_bookmark(self.state, stream, "since", start_date)
+                if month_data.month == 12: #being hard coded not sure what else to do
+                    month_data = datetime(month_data.year+1, month_data.month-11, 1)
+                else:
+                    month_data = datetime(month_data.year, month_data.month+1, 1)
+                
+        #loop ends here
     async def sync_trace_search(self, schema):
         """Incidents."""
         stream = "trace_search"
         loop = asyncio.get_event_loop()
 
-        singer.write_schema(stream, schema, ["hour"])
+        singer.write_schema(stream, schema, ["hour"]) #changed from usage
         trace_search = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"traces", stream)
         if trace_search:
             for trace in trace_search['usage']:
                 singer.write_record(stream, trace)
+            
             if trace_search['usage'] is not None and len(trace_search['usage']) > 0:
                 self.state = write_bookmark(self.state, stream, "since", trace_search['usage'][len(trace_search['usage'])-1]['hour'])
 
