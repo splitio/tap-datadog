@@ -9,6 +9,7 @@ from singer.bookmarks import write_bookmark, get_bookmark
 from pendulum import datetime
 from datetime import datetime
 import time
+from dateutil.relativedelta import *
 
 LOGGER = singer.get_logger()
 
@@ -38,8 +39,6 @@ class DatadogClient:
     def _get(self, path, params=None, data=None):
         for _ in range(0, 3):  # 3 attempts
             url = self._base_url + path
-            # data["api_key"] = self._auth.api_token #setting them up as parameters
-            # data["application_key"] = self._auth.application_token
             response = self.session.get(url, params=data)
             if response.status_code == 429:
                 time_to_reset = response.headers.get('X-RateLimit-Reset', time.time() + 60)
@@ -56,8 +55,8 @@ class DatadogClient:
                 start_date = bookmark
             else:
                 start_date = config['start_hour']
-            if start_date != datetime.datetime.utcnow().strftime('%Y-%m-%dT%H'):
-                data = {'start_hr': start_date, 'end_hr': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H')}
+            if start_date != datetime.utcnow().strftime('%Y-%m-%dT%H'):
+                data = {'start_hr': start_date, 'end_hr': datetime.utcnow().strftime('%Y-%m-%dT%H')}
                 traces = self._get(query,  data=data)
                 return traces.json()
             else:
@@ -130,10 +129,8 @@ class DatadogSync:
                 self.state = write_bookmark(self.state, stream, "since", custom_usage['usage'][len(custom_usage['usage'])-1]['hour'])
 
     async def sync_fargate(self, schema):
-        """Incidents."""
         stream = "fargate"
         loop = asyncio.get_event_loop()
-
         singer.write_schema(stream, schema, ["hour"])
         fargates = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"fargate", stream)
         if fargates:
@@ -143,10 +140,8 @@ class DatadogSync:
                 self.state = write_bookmark(self.state, stream, "since", fargates['usage'][len(fargates['usage'])-1]['hour'])
 
     async def sync_hosts_and_containers(self, schema):
-        """Incidents."""
         stream = "hosts_and_containers"
         loop = asyncio.get_event_loop()
-
         singer.write_schema(stream, schema, ["hour"])
         hosts = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"hosts", stream)
         if hosts:
@@ -156,10 +151,8 @@ class DatadogSync:
                 self.state = write_bookmark(self.state, stream, "since", hosts['usage'][len(hosts['usage'])-1]['hour'])
 
     async def sync_synthetics(self, schema):
-        """Incidents."""
         stream = "synthetics"
         loop = asyncio.get_event_loop()
-
         singer.write_schema(stream, schema, ["hour"])
         synthetics = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"synthetics", stream)
         if synthetics:
@@ -169,57 +162,37 @@ class DatadogSync:
                 self.state = write_bookmark(self.state, stream, "since", synthetics['usage'][len(synthetics['usage'])-1]['hour'])
 
     async def sync_top_average_metrics(self, schema):
-        """Incidents."""
         stream = "top_average_metrics"
         loop = asyncio.get_event_loop()
-
-        #make sure bookmark is a date time object
-        #be clear about what its going to be, what its going to be through, then what I am going to do with it
         bookmark = get_bookmark(self.state, "top_average_metrics", "since")
         if bookmark:
             start_date = urllib.parse.quote(bookmark)
         else:
             start_date = self.config['start_month']
-
-        # datetime.datetime.strptime(start_date, '%y-%m') #year, month
-        
-        #look in singer to find another field that has a timestamp field to see how they output it and put it into snowflake so we can put it into pipelienwise correctly
-
-
         today = datetime.today()
         end_date = datetime(today.year, today.month, 1)
-
         month_data = datetime.strptime(start_date, '%Y-%m')
         singer.write_schema(stream, schema, ["month","metric_name"])
-        #this is where loop goes for everything that goes in
         while month_data <= end_date:
-            top_average_metrics = await loop.run_in_executor(None, self.client.top_avg_metrics, start_date)#this is where other method is called
+            month_str =datetime.strftime(month_data, '%Y-%m')
+            date_str =datetime.strftime(month_data, '%Y-%m-%d')
+            top_average_metrics = await loop.run_in_executor(None, self.client.top_avg_metrics, month_str)
             if top_average_metrics:
                 for t in top_average_metrics['usage']:
-                # for t in top_average_metrics:
-                    t["month"] = month_data #convert timestamp into format needed by API then convert into what is needed in 195
-                    # t["month"] = datetime.strptime(start_date, '%Y-%m')#+"-01" #AT LEAST NEEDS A DAY format my start date correctly in here 
-                    # t["month"] = "2020-05-01"#make this a date time object
+                    t["month"] = date_str
                     singer.write_record(stream, t)
-                # self.state = write_bookmark(self.state, stream, "since", datetime.utcnow().strftime('%Y-%m'))
-                self.state = write_bookmark(self.state, stream, "since", start_date)
-                if month_data.month == 12: #being hard coded not sure what else to do
-                    month_data = datetime(month_data.year+1, month_data.month-11, 1)
-                else:
-                    month_data = datetime(month_data.year, month_data.month+1, 1)
-                
-        #loop ends here
+                self.state = write_bookmark(self.state, stream, "since", month_str)
+                month_data = month_data + relativedelta(months=+1)                
+
     async def sync_trace_search(self, schema):
-        """Incidents."""
         stream = "trace_search"
         loop = asyncio.get_event_loop()
-
-        singer.write_schema(stream, schema, ["hour"]) #changed from usage
+        singer.write_schema(stream, schema, ["hour"])
         trace_search = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"traces", stream)
         if trace_search:
             for trace in trace_search['usage']:
                 singer.write_record(stream, trace)
-            
+
             if trace_search['usage'] is not None and len(trace_search['usage']) > 0:
                 self.state = write_bookmark(self.state, stream, "since", trace_search['usage'][len(trace_search['usage'])-1]['hour'])
 

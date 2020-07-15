@@ -14,19 +14,14 @@ REQUIRED_CONFIG_KEYS = ["start_month",
                         "application_key"]
 LOGGER = singer.get_logger()
 
-#add month to the schema then add it to an elemenent that comes into my keys
-#need to make sure that these things exist
-#what is the uniquness of this stuff, want it to overwrite things, but if ran more than once, append it not over write it
-#id used to be unique keys but now not so much, gotta decide for myself (what is the data that I'm really getting and how do I construct it in a way thats useful, get usage over time and decide who is using what)
-#what is useful? if i want to run analysis on it later what would be important
 SCHEMA_PRIMARY_KEYS = { 
-    # "custom_usage": ["hour"],
-    # "fargate": ["hour"], #seem to mostly be hour 
-    # "hosts_and_containers": ["hour"], #hour seems to be unique but not sure what's really needed all grouped by hour
-    # "logs": ["hour"], #hour unique
-    # "synthetics": ["hour"], #hour seems to be unique as well
-    "top_average_metrics": ["month","metric_name"]#,#,"metric_name" #only 710 distinct metric names in table of 82000 so need something else to make it unique too
-    # "trace_search": ["hour"]
+    "custom_usage": ["hour"],
+    "fargate": ["hour"],
+    "hosts_and_containers": ["hour"],
+    "logs": ["hour"],
+    "synthetics": ["hour"],
+    "top_average_metrics": ["month","metric_name"],
+    "trace_search": ["hour"]
 }
 
 
@@ -55,7 +50,7 @@ def load_schema(tap_stream_id):
         singer.resolve_schema_references(schema, refs)
     return schema
 
-def generate_metadata(schema_name, schema): #taken from tap_pagerduty
+def generate_metadata(schema_name, schema): 
     pk_fields = SCHEMA_PRIMARY_KEYS[schema_name]
     mdata = metadata.new()
     mdata = metadata.write(mdata, (), 'table-key-properties', pk_fields)
@@ -70,13 +65,13 @@ def generate_metadata(schema_name, schema): #taken from tap_pagerduty
 
 
 def discover():
-    # raw_schemas = load_schemas()
+    
     streams = []
 
     for schema_name in SCHEMA_PRIMARY_KEYS.keys():
 
         # TODO: populate any metadata and stream's key properties here..
-        schema = load_schema(schema_name) #load the schema for each of them
+        schema = load_schema(schema_name) 
         stream_metadata = generate_metadata(schema_name, schema)
         stream_key_properties = SCHEMA_PRIMARY_KEYS[schema_name]
 
@@ -99,9 +94,8 @@ def get_selected_streams(catalog):
     and mdata with a 'selected' entry
     '''
     selected_streams = []
-    for stream in catalog['streams']: #this is where error is I believe. Not sure why debugger isn't stopping here, probably cause I'm running pipelinewise and not this file directly
+    for stream in catalog['streams']: 
         stream_metadata = metadata.to_map(stream['metadata'])
-        # stream metadata will have an empty breadcrumb
         if metadata.get(stream_metadata, (), "selected"):
             selected_streams.append(stream['tap_stream_id'])
 
@@ -112,10 +106,10 @@ def create_sync_tasks(config, state, catalog):
     client = DatadogClient(auth)
     sync = DatadogSync(client, state, config)
 
-    # selected_stream_ids = get_selected_streams(catalog)
+    
     sync_tasks = (sync.sync(stream['tap_stream_id'], stream['schema'])
                   for stream in catalog['streams']
-                #   if stream['tap_stream_id'] in selected_stream_ids
+                
     )   
 
     return asyncio.gather(*sync_tasks)
