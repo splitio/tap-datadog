@@ -48,13 +48,17 @@ class DatadogClient:
                 response.raise_for_status()
                 return response
 
-    def hourly_request(self, state, config, query, stream):
+    def hourly_request(self, state, config, query, stream): # manage start date condition if more than 2 months
         try:
             bookmark = get_bookmark(state, stream, "since")
             if bookmark:
                 start_date = bookmark
             else:
                 start_date = config['start_hour']
+            fail_date = (datetime.today() + relativedelta(months=-2) + relativedelta(days=1)).strftime('%Y-%m-%dT%H')
+            if start_date<fail_date:
+                start_date=fail_date
+
             if start_date != datetime.utcnow().strftime('%Y-%m-%dT%H'):
                 data = {'start_hr': start_date, 'end_hr': datetime.utcnow().strftime('%Y-%m-%dT%H')}
                 traces = self._get(query,  data=data)
