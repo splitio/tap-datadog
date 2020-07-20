@@ -7,8 +7,9 @@ import urllib
 from requests import HTTPError
 from singer.bookmarks import write_bookmark, get_bookmark
 from pendulum import datetime
-import datetime
+from datetime import datetime
 import time
+from dateutil.relativedelta import *
 
 LOGGER = singer.get_logger()
 
@@ -30,14 +31,14 @@ class DatadogClient:
         if not self._session:
             self._session = requests.Session()
             self._session.headers.update({"Accept": "application/json"})
+            self._session.headers.update({"DD-API-KEY": self._auth.api_token})
+            self._session.headers.update({"DD-APPLICATION-KEY": self._auth.application_token})
 
         return self._session
 
     def _get(self, path, params=None, data=None):
         for _ in range(0, 3):  # 3 attempts
             url = self._base_url + path
-            data["api_key"] = self._auth.api_token
-            data["application_key"] = self._auth.application_token
             response = self.session.get(url, params=data)
             if response.status_code == 429:
                 time_to_reset = response.headers.get('X-RateLimit-Reset', time.time() + 60)
@@ -47,15 +48,19 @@ class DatadogClient:
                 response.raise_for_status()
                 return response
 
-    def hourly_request(self, state, config, query, stream):
+    def hourly_request(self, state, config, query, stream): # manage start date condition if more than 2 months
         try:
             bookmark = get_bookmark(state, stream, "since")
             if bookmark:
                 start_date = bookmark
             else:
                 start_date = config['start_hour']
-            if start_date != datetime.datetime.utcnow().strftime('%Y-%m-%dT%H'):
-                data = {'start_hr': start_date, 'end_hr': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H')}
+            fail_date = (datetime.today() + relativedelta(months=-2) + relativedelta(days=1)).strftime('%Y-%m-%dT%H')
+            if start_date<fail_date:
+                start_date=fail_date
+
+            if start_date != datetime.utcnow().strftime('%Y-%m-%dT%H'):
+                data = {'start_hr': start_date, 'end_hr': datetime.utcnow().strftime('%Y-%m-%dT%H')}
                 traces = self._get(query,  data=data)
                 return traces.json()
             else:
@@ -64,19 +69,17 @@ class DatadogClient:
             LOGGER.error(error)
             return None
 
-    def top_avg_metrics(self, state, config):
+            
+
+    def top_avg_metrics(self, start_date):
         try:
-            bookmark = get_bookmark(state, "top_average_metrics", "since")
-            if bookmark:
-                start_date = urllib.parse.quote(bookmark)
-            else:
-                start_date = config['start_month']
             data = {'month': start_date}
-            query = f"top_avg_metrics"
+            query = f"top_avg_metrics" 
             metrics = self._get(query,  data=data)
             return metrics.json()
         except:
             return None
+        
 
 class DatadogSync:
     def __init__(self, client: DatadogClient, state={}, config={}):
@@ -109,8 +112,7 @@ class DatadogSync:
         """Get hourly usage for logs."""
         stream = "logs"
         loop = asyncio.get_event_loop()
-
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         logs = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"logs", stream)
         if logs:
             for log in logs['usage']:
@@ -122,8 +124,7 @@ class DatadogSync:
         """Get hourly usage for custom metric."""
         stream = "custom_usage"
         loop = asyncio.get_event_loop()
-
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         custom_usage = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"timeseries", stream)
         if custom_usage:
             for c in custom_usage['usage']:
@@ -132,11 +133,9 @@ class DatadogSync:
                 self.state = write_bookmark(self.state, stream, "since", custom_usage['usage'][len(custom_usage['usage'])-1]['hour'])
 
     async def sync_fargate(self, schema):
-        """Incidents."""
         stream = "fargate"
         loop = asyncio.get_event_loop()
-
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         fargates = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"fargate", stream)
         if fargates:
             for fargate in fargates['usage']:
@@ -145,11 +144,9 @@ class DatadogSync:
                 self.state = write_bookmark(self.state, stream, "since", fargates['usage'][len(fargates['usage'])-1]['hour'])
 
     async def sync_hosts_and_containers(self, schema):
-        """Incidents."""
         stream = "hosts_and_containers"
         loop = asyncio.get_event_loop()
-
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         hosts = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"hosts", stream)
         if hosts:
             for host in hosts['usage']:
@@ -158,11 +155,9 @@ class DatadogSync:
                 self.state = write_bookmark(self.state, stream, "since", hosts['usage'][len(hosts['usage'])-1]['hour'])
 
     async def sync_synthetics(self, schema):
-        """Incidents."""
         stream = "synthetics"
         loop = asyncio.get_event_loop()
-
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         synthetics = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"synthetics", stream)
         if synthetics:
             for synthetic in synthetics['usage']:
@@ -171,27 +166,37 @@ class DatadogSync:
                 self.state = write_bookmark(self.state, stream, "since", synthetics['usage'][len(synthetics['usage'])-1]['hour'])
 
     async def sync_top_average_metrics(self, schema):
-        """Incidents."""
         stream = "top_average_metrics"
         loop = asyncio.get_event_loop()
-
-        singer.write_schema(stream, schema.to_dict(), [])
-        top_average_metrics = await loop.run_in_executor(None, self.client.top_avg_metrics, self.state, self.config)
-        if top_average_metrics:
-            for t in top_average_metrics['usage']:
-                singer.write_record(stream, t)
-            self.state = write_bookmark(self.state, stream, "since", datetime.datetime.utcnow().strftime('%Y-%m'))
+        bookmark = get_bookmark(self.state, "top_average_metrics", "since")
+        if bookmark:
+            start_date = urllib.parse.quote(bookmark)
+        else:
+            start_date = self.config['start_month']
+        today = datetime.today()
+        end_date = datetime(today.year, today.month, 1)
+        month_data = datetime.strptime(start_date, '%Y-%m')
+        singer.write_schema(stream, schema, ["month","metric_name"])
+        while month_data <= end_date:
+            month_str =datetime.strftime(month_data, '%Y-%m')
+            date_str =datetime.strftime(month_data, '%Y-%m-%d')
+            top_average_metrics = await loop.run_in_executor(None, self.client.top_avg_metrics, month_str)
+            if top_average_metrics:
+                for t in top_average_metrics['usage']:
+                    t["month"] = date_str
+                    singer.write_record(stream, t)
+                self.state = write_bookmark(self.state, stream, "since", month_str)
+                month_data = month_data + relativedelta(months=+1)                
 
     async def sync_trace_search(self, schema):
-        """Incidents."""
         stream = "trace_search"
         loop = asyncio.get_event_loop()
-
-        singer.write_schema(stream, schema.to_dict(), ["hour"])
+        singer.write_schema(stream, schema, ["hour"])
         trace_search = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"traces", stream)
         if trace_search:
             for trace in trace_search['usage']:
                 singer.write_record(stream, trace)
+
             if trace_search['usage'] is not None and len(trace_search['usage']) > 0:
                 self.state = write_bookmark(self.state, stream, "since", trace_search['usage'][len(trace_search['usage'])-1]['hour'])
 
