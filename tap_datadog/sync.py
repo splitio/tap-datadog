@@ -48,19 +48,25 @@ class DatadogClient:
                 response.raise_for_status()
                 return response
 
-    def hourly_request(self, state, config, query, stream): # manage start date condition if more than 2 months
+    def hourly_request(self, state, config, query, stream): 
         try:
             bookmark = get_bookmark(state, stream, "since")
             if bookmark:
                 start_date = bookmark
             else:
                 start_date = config['start_hour']
-            fail_date = (datetime.today() + relativedelta(months=-2) + relativedelta(days=1)).strftime('%Y-%m-%dT%H')
-            if start_date<fail_date:
-                start_date=fail_date
+            
+            # date can't be more than two months otherwise datadog fail
+            min_date = (datetime.today() + relativedelta(months=-2) + relativedelta(days=1)).strftime('%Y-%m-%dT%H')
+            if start_date < min_date:
+                start_date = min_date
+            # also being too current get some partial data for the days, so we always have to go back a little bit to refresh
+            #max_date = (datetime.today() + relativedelta(days=-1) + relativedelta(days=1)).strftime('%Y-%m-%dT%H')
+            #if start_date > max_date:
+            #    start_date = max_date
 
             if start_date != datetime.utcnow().strftime('%Y-%m-%dT%H'):
-                data = {'start_hr': start_date, 'end_hr': datetime.utcnow().strftime('%Y-%m-%dT%H')}
+                data = {'start_hr': start_date}
                 traces = self._get(query,  data=data)
                 return traces.json()
             else:
