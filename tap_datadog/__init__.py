@@ -15,13 +15,13 @@ REQUIRED_CONFIG_KEYS = ["start_month",
 LOGGER = singer.get_logger()
 
 SCHEMA_PRIMARY_KEYS = { 
-    "custom_usage": ["hour"],
-    "fargate": ["hour"],
-    "hosts_and_containers": ["hour"],
-    "logs": ["hour"],
-    "synthetics": ["hour"],
-    "top_average_metrics": ["month","metric_name"],
-    "trace_search": ["hour"]
+    "custom_usage": ["hour", "account"],
+    "fargate": ["hour", "account"],
+    "hosts_and_containers": ["hour", "account"],
+    "logs": ["hour", "account"],
+    "synthetics": ["hour", "account"],
+    "top_average_metrics": ["month", "metric_name", "account"],
+    "trace_search": ["hour", "account"]
 }
 
 

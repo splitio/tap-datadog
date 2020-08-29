@@ -16,6 +16,12 @@
         "string"
       ],
       "format": "date-time"
+    },
+    "account": {
+       "type": [
+          "null",
+          "string"
+        ]
     }
   }
 }

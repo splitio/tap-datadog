@@ -46,6 +46,12 @@
         "null",
         "integer"
       ]
+    },
+    "account": {
+       "type": [
+          "null",
+          "string"
+        ]
     }
   }
 
