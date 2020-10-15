@@ -61,7 +61,7 @@ class DatadogClient:
             if start_date < min_date:
                 start_date = min_date
             # also being too current get some partial data for the days, so we always have to go back a little bit to refresh
-            max_date = (datetime.today() + relativedelta(days=-1)).strftime('%Y-%m-%dT%H')
+            max_date = (datetime.today() + relativedelta(days=-2)).strftime('%Y-%m-%dT%H')
             if start_date > max_date:
                 start_date = max_date
 
