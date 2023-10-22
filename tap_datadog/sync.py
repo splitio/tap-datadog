@@ -200,16 +200,4 @@ class DatadogSync:
                 self.state = write_bookmark(self.state, stream, "since", month_str)
                 month_data = month_data + relativedelta(months=+1)                
 
-    async def sync_trace_search(self, schema):
-        stream = "trace_search"
-        loop = asyncio.get_event_loop()
-        singer.write_schema(stream, schema, ["hour", "account"])
-        trace_search = await loop.run_in_executor(None, self.client.hourly_request, self.state, self.config, f"traces", stream)
-        if trace_search:
-            for trace in trace_search['usage']:
-                trace['account'] = self.config['account']
-                singer.write_record(stream, trace)
-
-            if trace_search['usage'] is not None and len(trace_search['usage']) > 0:
-                self.state = write_bookmark(self.state, stream, "since", trace_search['usage'][len(trace_search['usage'])-1]['hour'])
 

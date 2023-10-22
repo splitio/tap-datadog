@@ -35,6 +35,24 @@
       ],
       "format": "date-time"
     },
+    "org_name": {
+      "type": [
+         "null",
+         "string"
+       ]
+    },
+    "public_id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "region": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "account": {
        "type": [
           "null",

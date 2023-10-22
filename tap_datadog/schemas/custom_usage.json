@@ -10,6 +10,24 @@
             "integer"
          ]
       },
+      "num_custom_output_timeseries": {
+         "type": [
+            "null",
+            "integer"
+         ]
+      },
+      "num_custom_input_timeseries": {
+         "type": [
+            "null",
+            "integer"
+         ]
+      },
+      "num_custom_historical_timeseries": {
+         "type": [
+            "null",
+            "integer"
+         ]
+      },
       "hour": {
          "type": [
             "null",
@@ -17,6 +35,24 @@
          ],
          "format": "date-time"
       },
+      "org_name": {
+         "type": [
+            "null",
+            "string"
+          ]
+       },
+       "public_id": {
+         "type": [
+           "null",
+           "string"
+         ]
+       },
+       "region": {
+         "type": [
+           "null",
+           "string"
+         ]
+       },
       "account": {
          "type": [
             "null",

@@ -4,11 +4,12 @@
     "object"
   ],
   "properties": {
-    "ingested_events_bytes": {
+    "hour": {
       "type": [
         "null",
-        "integer"
-      ]
+        "string"
+      ],
+      "format": "date-time"
     },
     "indexed_events_count":{
       "type": [
@@ -16,12 +17,66 @@
         "integer"
       ]
     },
-    "hour": {
+    "ingested_events_bytes": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "billable_ingested_bytes": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "logs_forwarding_events_bytes": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "logs_live_indexed_count": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "logs_live_ingested_bytes": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "logs_rehydrated_indexed_count": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "logs_rehydrated_ingested_bytes": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+
+    "org_name": {
+      "type": [
+         "null",
+         "string"
+       ]
+    },
+    "public_id": {
       "type": [
         "null",
         "string"
-      ],
-      "format": "date-time"
+      ]
+    },
+    "region": {
+      "type": [
+        "null",
+        "string"
+      ]
     },
     "account": {
        "type": [

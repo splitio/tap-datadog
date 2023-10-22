@@ -20,8 +20,7 @@ SCHEMA_PRIMARY_KEYS = {
     "hosts_and_containers": ["hour", "account"],
     "logs": ["hour", "account"],
     "synthetics": ["hour", "account"],
-    "top_average_metrics": ["month", "metric_name", "account"],
-    "trace_search": ["hour", "account"]
+    "top_average_metrics": ["month", "metric_name", "account", "region"],
 }
 
 

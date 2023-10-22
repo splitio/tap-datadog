@@ -10,12 +10,48 @@
         "integer"
       ]
     },
+    "apm_fargate_count": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "appsec_fargate_count": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "avg_profiled_fargate_tasks": {
+      "type": [
+        "null",
+        "number"
+      ]
+    },
     "hour": {
       "type": [
         "null",
         "string"
       ],
       "format": "date-time"
+    },
+    "org_name": {
+      "type": [
+         "null",
+         "string"
+       ]
+    },
+    "public_id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "region": {
+      "type": [
+        "null",
+        "string"
+      ]
     },
     "account": {
        "type": [

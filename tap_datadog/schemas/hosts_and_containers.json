@@ -4,18 +4,6 @@
     "object"
   ],
   "properties": {
-    "container_count":{
-      "type": [
-        "null",
-        "integer"
-      ]
-    },
-    "host_count":{
-      "type": [
-        "null",
-        "integer"
-      ]
-    },
     "hour": {
       "type": [
         "null",
@@ -23,7 +11,7 @@
       ],
       "format": "date-time"
     },
-    "apm_host_count":{
+    "host_count":{
       "type": [
         "null",
         "integer"
@@ -35,16 +23,143 @@
         "integer"
       ]
     },
+    "aws_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
     "gcp_host_count":{
       "type": [
         "null",
         "integer"
       ]
     },
-    "aws_host_count":{
+    "azure_host_count":{
       "type": [
         "null",
         "integer"
+      ]
+    },
+    "alibaba_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "infra_azure_app_service":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+
+
+
+    "apm_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "apm_host_count_incl_usm":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "apm_azure_app_service_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "apm_uncategorized_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "apm_trace_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "npm_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "unbillable_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+
+
+    "container_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "container_max_container_count_excl_agent":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "opentelemetry_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "opentelemetry_apm_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "heroku_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "vsphere_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "data_stream_monitoring_host_count":{
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+
+
+    "org_name": {
+      "type": [
+         "null",
+         "string"
+       ]
+    },
+    "public_id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "region": {
+      "type": [
+        "null",
+        "string"
       ]
     },
     "account": {

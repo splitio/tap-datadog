@@ -4,18 +4,43 @@
     "object"
   ],
   "properties": {
-    "check_calls_count": {
-      "type": [
-        "null",
-        "integer"
-      ]
-    },
     "hour": {
       "type": [
         "null",
         "string"
       ],
       "format": "date-time"
+    },
+    "check_calls_count": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "browser_check_calls_count": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+
+    "org_name": {
+      "type": [
+         "null",
+         "string"
+       ]
+    },
+    "public_id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "region": {
+      "type": [
+        "null",
+        "string"
+      ]
     },
     "account": {
        "type": [
